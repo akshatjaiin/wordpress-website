@@ -6,15 +6,3 @@ volumes:
     mount: /app/wp-content
 scaling:
   mode: single_concurrency
-capabilities:
-  database:
-    engine: mysql
-instaboot:
-  max_age: 59m
-  requests:
-    - path: /
-      headers:
-        - name: Accept
-          value: text/html
-        - name: Accept-Language
-          value: en-US
