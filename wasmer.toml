@@ -1,0 +1,15 @@
+[package]
+name = "akshatjain1567/wordpress-website"
+version = "0.1.0"
+description = "WordPress Website for Wasmer Edge"
+
+[dependencies]
+"wasmer/wordpress" = "*"
+
+[[command]]
+name = "script"
+module = "wasmer/wordpress:script"
+runner = "wcgi"
+
+[fs]
+"/app" = "app"

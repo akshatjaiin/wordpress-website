@@ -1,7 +1,6 @@
 kind: wasmer.io/App.v0
-name: wordpress
-owner: wasmer-examples
-package: .
+name: wordpress-website
+package: wasmer/wordpress
 volumes:
   - name: wp-content
     mount: /app/wp-content
@@ -10,30 +9,12 @@ scaling:
 capabilities:
   database:
     engine: mysql
-  instaboot:
-    max_age: 59m
-    requests:
+instaboot:
+  max_age: 59m
+  requests:
     - path: /
       headers:
-      - name: Accept
-        value: text/html
-      - name: Accept-Language
-        value: en-US
-    - path: /
-      headers:
-      - name: Accept
-        value: text/html
-      - name: Accept-Language
-        value: en-US
-    - path: /
-      headers:
-      - name: Accept
-        value: text/html
-      - name: Accept-Language
-        value: en-US
-    - path: /
-      headers:
-      - name: Accept
-        value: text/html
-      - name: Accept-Language
-        value: en-US
+        - name: Accept
+          value: text/html
+        - name: Accept-Language
+          value: en-US
