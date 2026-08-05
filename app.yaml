@@ -1,6 +1,6 @@
 kind: wasmer.io/App.v0
 name: wordpress-website
-package: wasmer/wordpress
+package: .
 volumes:
   - name: wp-content
     mount: /app/wp-content
