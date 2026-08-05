@@ -12,11 +12,16 @@ add_filter('pre_option_current_theme', function() { return 'Storefront'; });
 // Always ensure pretty permalinks are set (runs every request, cheap operation)
 add_action('init', 'auto_store_ensure_permalinks', 1);
 function auto_store_ensure_permalinks() {
-    $current = get_option('permalink_structure');
-    if ($current !== '/%postname%/') {
-        update_option('permalink_structure', '/%postname%/');
-        flush_rewrite_rules();
-    }
+    // Don't run during WordPress installation - tables don't exist yet
+    if (defined('WP_INSTALLING') && WP_INSTALLING) return;
+    // Suppress errors and bail if DB not ready
+    try {
+        $current = @get_option('permalink_structure');
+        if ($current !== '/%postname%/') {
+            @update_option('permalink_structure', '/%postname%/');
+            flush_rewrite_rules();
+        }
+    } catch (Exception $e) { return; }
 }
 
 // Run full setup after WordPress fully loads
@@ -24,7 +29,7 @@ add_action('wp_loaded', 'auto_store_setup_run', 1);
 
 function auto_store_setup_run() {
     if (!function_exists('WC') && !class_exists('WooCommerce')) return;
-    if (get_option('auto_store_setup_done_v4')) return;
+    if (get_option('auto_store_setup_done_v5')) return;
 
     // --- Activate WooCommerce plugin ---
     if (!is_plugin_active('woocommerce/woocommerce.php')) {
@@ -104,21 +109,51 @@ function auto_store_setup_run() {
         }
     }
 
-    // --- Demo Products ---
+    // --- Demo Products --- [title, price, sale, category, description, rating, reviews, image_file]
     $products = [
-        ['Wireless Noise-Cancelling Headphones', '149.99', '199.99', 'electronics', 'Experience crystal-clear audio with active noise cancellation. 30-hour battery life, premium sound quality, foldable design perfect for travel.', 4.8, 124],
-        ['Smart Watch Pro X',                   '299.99', '399.99', 'electronics', 'Stay connected with this premium smartwatch. Features heart rate monitoring, GPS, sleep tracking, and 7-day battery life.', 4.7, 89],
-        ['4K Wireless Webcam',                  '89.99',  '119.99', 'electronics', 'Ultra HD 4K webcam with built-in microphone and noise cancellation. Perfect for video calls, streaming and content creation.', 4.6, 203],
-        ['Premium Cotton Hoodie',               '59.99',  '79.99',  'clothing',    'Ultra-soft 100% organic cotton hoodie. Available in 8 colors. Machine washable, pre-shrunk, relaxed fit for all-day comfort.', 4.9, 512],
-        ['Athletic Running Shoes',              '129.99', '159.99', 'sports',      'Lightweight performance running shoes with responsive cushioning. Breathable mesh upper, durable rubber sole, ideal for road and trail running.', 4.8, 341],
-        ['Slim Fit Chino Pants',                '49.99',  '64.99',  'clothing',    'Classic slim-fit chinos in stretch fabric for ultimate comfort. Perfect for casual or smart-casual occasions. Available in 6 colors.', 4.5, 278],
-        ['Aromatherapy Diffuser',               '34.99',  '49.99',  'home-garden', 'Ultrasonic essential oil diffuser with 7 LED color modes. Covers up to 300 sq ft. Auto shut-off, whisper-quiet operation.', 4.7, 467],
-        ['Bamboo Desk Organizer Set',           '29.99',  '39.99',  'home-garden', 'Eco-friendly bamboo desk organizer with 5 compartments. Keeps your workspace tidy and stylish. Great gift idea.', 4.6, 189],
-        ['Yoga Mat Premium',                    '44.99',  '59.99',  'sports',      'Non-slip 6mm thick yoga mat with alignment lines. Eco-friendly TPE material, includes carry strap. Perfect for yoga, pilates and stretching.', 4.8, 623],
-        ['Stainless Steel Water Bottle',        '24.99',  '34.99',  'sports',      'Vacuum insulated stainless steel bottle keeps drinks cold 24 hrs, hot 12 hrs. BPA-free, leak-proof lid. 32oz capacity.', 4.9, 891],
+        ['Wireless Noise-Cancelling Headphones', '149.99', '199.99', 'electronics', 'Experience crystal-clear audio with active noise cancellation. 30-hour battery life, premium sound quality, foldable design perfect for travel.', 4.8, 124, 'headphones.jpg'],
+        ['Smart Watch Pro X',                   '299.99', '399.99', 'electronics', 'Stay connected with this premium smartwatch. Features heart rate monitoring, GPS, sleep tracking, and 7-day battery life.', 4.7, 89,  'smartwatch.jpg'],
+        ['4K Wireless Webcam',                  '89.99',  '119.99', 'electronics', 'Ultra HD 4K webcam with built-in microphone and noise cancellation. Perfect for video calls, streaming and content creation.', 4.6, 203, 'webcam.jpg'],
+        ['Premium Cotton Hoodie',               '59.99',  '79.99',  'clothing',    'Ultra-soft 100% organic cotton hoodie. Available in 8 colors. Machine washable, pre-shrunk, relaxed fit for all-day comfort.', 4.9, 512, 'hoodie.jpg'],
+        ['Athletic Running Shoes',              '129.99', '159.99', 'sports',      'Lightweight performance running shoes with responsive cushioning. Breathable mesh upper, durable rubber sole, ideal for road and trail running.', 4.8, 341, 'running-shoes.jpg'],
+        ['Slim Fit Chino Pants',                '49.99',  '64.99',  'clothing',    'Classic slim-fit chinos in stretch fabric for ultimate comfort. Perfect for casual or smart-casual occasions. Available in 6 colors.', 4.5, 278, 'chino-pants.jpg'],
+        ['Aromatherapy Diffuser',               '34.99',  '49.99',  'home-garden', 'Ultrasonic essential oil diffuser with 7 LED color modes. Covers up to 300 sq ft. Auto shut-off, whisper-quiet operation.', 4.7, 467, 'diffuser.jpg'],
+        ['Bamboo Desk Organizer Set',           '29.99',  '39.99',  'home-garden', 'Eco-friendly bamboo desk organizer with 5 compartments. Keeps your workspace tidy and stylish. Great gift idea.', 4.6, 189, 'desk-organizer.jpg'],
+        ['Yoga Mat Premium',                    '44.99',  '59.99',  'sports',      'Non-slip 6mm thick yoga mat with alignment lines. Eco-friendly TPE material, includes carry strap. Perfect for yoga, pilates and stretching.', 4.8, 623, 'yoga-mat.jpg'],
+        ['Stainless Steel Water Bottle',        '24.99',  '34.99',  'sports',      'Vacuum insulated stainless steel bottle keeps drinks cold 24 hrs, hot 12 hrs. BPA-free, leak-proof lid. 32oz capacity.', 4.9, 891, 'water-bottle.jpg'],
     ];
 
-    foreach ($products as [$title, $price, $regular, $cat_slug, $desc, $rating, $count]) {
+    // Helper: attach bundled image file to a post as featured image
+    $images_dir = WP_CONTENT_DIR . '/uploads/products/';
+    $images_url = content_url('/uploads/products/');
+    $attach_image = function($img_file, $post_id) use ($images_dir, $images_url) {
+        $filepath = $images_dir . $img_file;
+        if (!file_exists($filepath)) return;
+        $filename  = basename($filepath);
+        $mime_type = 'image/jpeg';
+        $attachment = [
+            'post_mime_type' => $mime_type,
+            'post_title'     => sanitize_file_name($filename),
+            'post_content'   => '',
+            'post_status'    => 'inherit',
+            'guid'           => $images_url . $filename,
+        ];
+        // Check if already attached
+        $existing = get_posts(['post_type' => 'attachment', 'name' => sanitize_title($filename), 'posts_per_page' => 1]);
+        if ($existing) {
+            set_post_thumbnail($post_id, $existing[0]->ID);
+            return;
+        }
+        $attach_id = wp_insert_attachment($attachment, $filepath, $post_id);
+        if (!is_wp_error($attach_id)) {
+            require_once ABSPATH . 'wp-admin/includes/image.php';
+            $attach_data = wp_generate_attachment_metadata($attach_id, $filepath);
+            wp_update_attachment_metadata($attach_id, $attach_data);
+            set_post_thumbnail($post_id, $attach_id);
+        }
+    };
+
+    foreach ($products as [$title, $price, $regular, $cat_slug, $desc, $rating, $count, $img]) {
         if (get_page_by_title($title, OBJECT, 'product')) continue;
 
         $product = new WC_Product_Simple();
@@ -139,6 +174,12 @@ function auto_store_setup_run() {
         }
 
         $product->save();
+
+        // Attach featured image
+        $product_id = $product->get_id();
+        if ($product_id && !empty($img)) {
+            $attach_image($img, $product_id);
+        }
     }
 
     // --- Navigation Menu ---
@@ -198,5 +239,5 @@ function auto_store_setup_run() {
     // Flush rewrite rules
     flush_rewrite_rules();
 
-    update_option('auto_store_setup_done_v4', true);
+    update_option('auto_store_setup_done_v5', true);
 }
