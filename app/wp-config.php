@@ -26,18 +26,17 @@ define('AUTOMATIC_UPDATER_DISABLED', true);
  * @package WordPress
  */
 
-// ** Database settings - Wasmer Edge auto-injects DB_NAME, DB_USER, DB_PASSWORD, DB_HOST ** //
-/** The name of the database for WordPress */
-define( 'DB_NAME', getenv('DB_NAME') ?: 'database_name_here' );
+// ** Database settings - Wasmer Edge auto-injects DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT ** //
+define( 'DB_NAME', getenv('DB_NAME') ?: (getenv('MYSQL_DATABASE') ?: 'wordpress') );
+define( 'DB_USER', getenv('DB_USER') ?: (getenv('MYSQL_USER') ?: 'wordpress') );
+define( 'DB_PASSWORD', getenv('DB_PASSWORD') ?: (getenv('MYSQL_PASSWORD') ?: '') );
 
-/** Database username */
-define( 'DB_USER', getenv('DB_USER') ?: 'username_here' );
-
-/** Database password */
-define( 'DB_PASSWORD', getenv('DB_PASSWORD') ?: 'password_here' );
-
-/** Database hostname */
-define( 'DB_HOST', getenv('DB_HOST') ?: 'localhost' );
+$db_host = getenv('DB_HOST') ?: (getenv('MYSQL_HOST') ?: 'localhost');
+$db_port = getenv('DB_PORT') ?: getenv('MYSQL_PORT');
+if ($db_port && !str_contains($db_host, ':')) {
+    $db_host .= ':' . $db_port;
+}
+define( 'DB_HOST', $db_host );
 
 /** Database charset to use in creating database tables. */
 define( 'DB_CHARSET', 'utf8' );
