@@ -26,18 +26,18 @@ define('AUTOMATIC_UPDATER_DISABLED', true);
  * @package WordPress
  */
 
- // ** Database settings - You can get this info from your web host ** //
+// ** Database settings - Wasmer Edge auto-injects DB_NAME, DB_USER, DB_PASSWORD, DB_HOST ** //
 /** The name of the database for WordPress */
-define( 'DB_NAME', 'database_name_here' );
+define( 'DB_NAME', getenv('DB_NAME') ?: 'database_name_here' );
 
 /** Database username */
-define( 'DB_USER', 'username_here' );
+define( 'DB_USER', getenv('DB_USER') ?: 'username_here' );
 
 /** Database password */
-define( 'DB_PASSWORD', 'password_here' );
+define( 'DB_PASSWORD', getenv('DB_PASSWORD') ?: 'password_here' );
 
 /** Database hostname */
-define( 'DB_HOST', 'localhost' );
+define( 'DB_HOST', getenv('DB_HOST') ?: 'localhost' );
 
 /** Database charset to use in creating database tables. */
 define( 'DB_CHARSET', 'utf8' );
@@ -58,14 +58,14 @@ define('DB_DIR', dirname(dirname(__FILE__)) . '/db/');
  *
  * @since 2.6.0
  */
-define( 'AUTH_KEY',         'put your unique phrase here' );
-define( 'SECURE_AUTH_KEY',  'put your unique phrase here' );
-define( 'LOGGED_IN_KEY',    'put your unique phrase here' );
-define( 'NONCE_KEY',        'put your unique phrase here' );
-define( 'AUTH_SALT',        'put your unique phrase here' );
-define( 'SECURE_AUTH_SALT', 'put your unique phrase here' );
-define( 'LOGGED_IN_SALT',   'put your unique phrase here' );
-define( 'NONCE_SALT',       'put your unique phrase here' );
+define( 'AUTH_KEY',         getenv('AUTH_KEY') ?: 'wasmer-wp-auth-key-secret-12345' );
+define( 'SECURE_AUTH_KEY',  getenv('SECURE_AUTH_KEY') ?: 'wasmer-wp-secure-auth-key-secret-12345' );
+define( 'LOGGED_IN_KEY',    getenv('LOGGED_IN_KEY') ?: 'wasmer-wp-logged-in-key-secret-12345' );
+define( 'NONCE_KEY',        getenv('NONCE_KEY') ?: 'wasmer-wp-nonce-key-secret-12345' );
+define( 'AUTH_SALT',        getenv('AUTH_SALT') ?: 'wasmer-wp-auth-salt-secret-12345' );
+define( 'SECURE_AUTH_SALT', getenv('SECURE_AUTH_SALT') ?: 'wasmer-wp-secure-auth-salt-secret-12345' );
+define( 'LOGGED_IN_SALT',   getenv('LOGGED_IN_SALT') ?: 'wasmer-wp-logged-in-salt-secret-12345' );
+define( 'NONCE_SALT',       getenv('NONCE_SALT') ?: 'wasmer-wp-nonce-salt-secret-12345' );
 
 
 $scheme = isset( $_SERVER['HTTPS'] ) && '1' === (string) $_SERVER['HTTPS'] ? "https://" : "http://";
@@ -95,7 +95,9 @@ $table_prefix = 'wp_';
  *
  * @link https://wordpress.org/support/article/debugging-in-wordpress/
  */
-define( 'WP_DEBUG', false );
+define( 'WP_DEBUG', true );
+define( 'WP_DEBUG_LOG', true );
+define( 'WP_DEBUG_DISPLAY', true );
 
 /* Add any custom values between this line and the "stop editing" line. */
 
