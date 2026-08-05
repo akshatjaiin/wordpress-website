@@ -9,12 +9,22 @@ add_filter('pre_option_template', function() { return 'storefront'; });
 add_filter('pre_option_stylesheet', function() { return 'storefront'; });
 add_filter('pre_option_current_theme', function() { return 'Storefront'; });
 
-// Run setup after WordPress fully loads
+// Always ensure pretty permalinks are set (runs every request, cheap operation)
+add_action('init', 'auto_store_ensure_permalinks', 1);
+function auto_store_ensure_permalinks() {
+    $current = get_option('permalink_structure');
+    if ($current !== '/%postname%/') {
+        update_option('permalink_structure', '/%postname%/');
+        flush_rewrite_rules();
+    }
+}
+
+// Run full setup after WordPress fully loads
 add_action('wp_loaded', 'auto_store_setup_run', 1);
 
 function auto_store_setup_run() {
     if (!function_exists('WC') && !class_exists('WooCommerce')) return;
-    if (get_option('auto_store_setup_done_v3')) return;
+    if (get_option('auto_store_setup_done_v4')) return;
 
     // --- Activate WooCommerce plugin ---
     if (!is_plugin_active('woocommerce/woocommerce.php')) {
@@ -160,12 +170,22 @@ function auto_store_setup_run() {
     $locations['primary'] = $menu_id;
     set_theme_mod('nav_menu_locations', $locations);
 
+    // --- Permalink Structure (clean URLs: /shop/, /product-name/, /about/) ---
+    update_option('permalink_structure', '/%postname%/');
+
     // --- WooCommerce Settings ---
     update_option('woocommerce_currency', 'USD');
     update_option('woocommerce_enable_reviews', 'yes');
     update_option('woocommerce_enable_review_rating', 'yes');
     update_option('woocommerce_catalog_columns', 3);
     update_option('woocommerce_catalog_rows', 4);
+    // WooCommerce product base slug → /product/
+    update_option('woocommerce_permalinks', [
+        'product_base'           => '/product',
+        'product_category_base'  => 'product-category',
+        'product_tag_base'       => 'product-tag',
+        'attribute_base'         => '',
+    ]);
 
     // Storefront customizer
     set_theme_mod('storefront_header_background_color', '#1a1a2e');
@@ -178,5 +198,5 @@ function auto_store_setup_run() {
     // Flush rewrite rules
     flush_rewrite_rules();
 
-    update_option('auto_store_setup_done_v3', true);
+    update_option('auto_store_setup_done_v4', true);
 }
